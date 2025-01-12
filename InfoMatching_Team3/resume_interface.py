@@ -4,7 +4,8 @@ import PyPDF2
 from openai import OpenAI
 from pydantic import BaseModel
 
-with open('keys.txt', 'r') as file:
+key_file_path = os.path.join(os.path.dirname(__file__), 'keys.txt')
+with open(key_file_path, 'r') as file:
     key = file.read()
 
 client = OpenAI(api_key=key)
