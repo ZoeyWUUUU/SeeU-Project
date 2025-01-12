@@ -1,6 +1,8 @@
 import json
 from openai import OpenAI
-with open('key.txt', 'r') as file:
+import os
+key_file_path = os.path.join(os.path.dirname(__file__), 'key.txt')
+with open(key_file_path, 'r') as file:
     key = file.read()
 client = OpenAI(api_key=key)
 
