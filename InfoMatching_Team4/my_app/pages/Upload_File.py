@@ -2,7 +2,17 @@ import streamlit as st
 import pandas as pd
 from io import StringIO
 import os
+import sys
 import sqlite3
+
+# Append the path to the parent directory of InfoMatching_Team2
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../InfoMatching_Team2')))
+from jd_function import extract_job_data, client
+
+# Append the path to the parent directory of InfoMatching_Team3
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../InfoMatching_Team3')))
+from resume_interface import read_resume
+
 
 st.set_page_config(
     page_title="Upload Files",
@@ -61,6 +71,10 @@ if uploaded_resume is not None:
             INSERT INTO uploads (student_name, file_name, file_path)
             VALUES (?, ?, ?)
         ''', (student_name, uploaded_resume.name, save_path))
+    
+    # print parsed resume data to terminal
+    resume_data = read_resume(file_path=save_path)
+    print(resume_data)
 
     connection.commit()
     connection.close()
@@ -114,6 +128,10 @@ if uploaded_jd is not None:
             INSERT INTO job_description (job_company, job_title, job_description, job_application_url)
             VALUES (?, ?, ?, ?)
         ''', (row['job_company'], row['job_title'], row['job_description'], row['job_application_url']))
+
+        # Extract job data using the extract_job_data function
+        extracted_data = extract_job_data(row['job_description'], client)
+        print(extracted_data)  # Print the output to the terminal
 
     connection.commit()
 

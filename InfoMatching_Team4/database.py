@@ -8,8 +8,8 @@ cursor = connection.cursor()
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS uploads (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        student_name TEXT NOT NULL,
-        file_name TEXT NOT NULL UNIQUE,
+        student_name TEXT NOT NULL UNIQUE,
+        file_name TEXT NOT NULL,
         file_path TEXT NOT NULL,
         uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )

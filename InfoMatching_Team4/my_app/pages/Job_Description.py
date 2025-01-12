@@ -8,12 +8,31 @@ import pandas as pd
 def main():
     st.title("Job Description Page")
 
+    # Add text inputs for search criteria
+    company_name = st.text_input("Enter Company Name to Filter Results")
+    job_title = st.text_input("Enter Job Title to Filter Results")
+
     script_dir = os.path.dirname(os.path.abspath(__file__))
     db_path = os.path.join(script_dir, "../../", "my_database.db")
     connection = sqlite3.connect(db_path)
     cursor = connection.cursor()
     
-    cursor.execute("SELECT * FROM job_description")
+    # cursor.execute("SELECT * FROM job_description")
+    
+    # Build the query based on search criteria
+    query = "SELECT * FROM job_description WHERE 1=1"
+    params = []
+
+    if company_name:
+        query += " AND job_company LIKE ?"
+        params.append(f"%{company_name}%")
+
+    if job_title:
+        query += " AND job_title LIKE ?"
+        params.append(f"%{job_title}%")
+
+    cursor.execute(query, params)
+    
     data = cursor.fetchall()
 
     # Fetch column names

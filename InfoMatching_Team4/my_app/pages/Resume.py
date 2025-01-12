@@ -8,12 +8,22 @@ import pandas as pd
 def main():
     st.title("Resume Page")
 
+    # Add a text input for the student name
+    student_name = st.text_input("Enter Student Name to Filter Results")
+
     script_dir = os.path.dirname(os.path.abspath(__file__))
     db_path = os.path.join(script_dir, "../../", "my_database.db")
     connection = sqlite3.connect(db_path)
     cursor = connection.cursor()
     
-    cursor.execute("SELECT * FROM uploads")
+    # cursor.execute("SELECT * FROM uploads")
+
+    # Build the query based on search criteria
+    if student_name:
+        cursor.execute("SELECT * FROM uploads WHERE student_name LIKE ?", ('%' + student_name + '%',))
+    else:
+        cursor.execute("SELECT * FROM uploads")
+
     data = cursor.fetchall()
 
     # Fetch column names
