@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import json
 from io import StringIO
 import os
 import sys
@@ -73,8 +74,37 @@ if uploaded_resume is not None:
         ''', (student_name, uploaded_resume.name, save_path))
     
     # print parsed resume data to terminal
+
+    connection.commit()
+    connection.close()
+
     resume_data = read_resume(file_path=save_path)
-    print(resume_data)
+
+    # Convert the parsed resume data into JSON format
+    json_resume = json.dumps(resume_data)
+    print(json_resume)
+
+    # Check if the file already exists in the parsed database
+    connection = sqlite3.connect('my_database_parsed.db')
+    cursor = connection.cursor()
+    cursor.execute('SELECT COUNT(*) FROM uploads WHERE student_name = ?', (student_name,))
+    count = cursor.fetchone()[0]
+
+    if count > 0:
+        # Update the existing entry
+        cursor.execute('''
+            UPDATE uploads
+            SET file_name = ?, parsed_file = ?, uploaded_at = CURRENT_TIMESTAMP
+            WHERE student_name = ?
+        ''', (uploaded_resume.name, json_resume, student_name))
+    else:
+        # Insert a new entry
+        cursor.execute('''
+            INSERT INTO uploads (student_name, file_name, parsed_file)
+            VALUES (?, ?, ?)
+        ''', (student_name, uploaded_resume.name, json_resume))
+
+    print("upload parse successful")
 
     connection.commit()
     connection.close()
@@ -130,8 +160,8 @@ if uploaded_jd is not None:
         ''', (row['job_company'], row['job_title'], row['job_description'], row['job_application_url']))
 
         # Extract job data using the extract_job_data function
-        extracted_data = extract_job_data(row['job_description'], client)
-        print(extracted_data)  # Print the output to the terminal
+        # extracted_data = extract_job_data(row['job_description'], client)
+        # print(extracted_data)  # Print the output to the terminal
 
     connection.commit()
 
@@ -170,6 +200,24 @@ if uploaded_jd is not None:
         #     INSERT INTO job_matching_result (job_id, matching_score)
         #     VALUES (?, ?)
         # ''', (job_id[0], matching_score))
+
+    connection.commit()
+    connection.close()
+
+    # Enter the parsed JD into the parsed database
+    connection = sqlite3.connect('my_database_parsed.db')
+    cursor = connection.cursor()
+
+    for _, row in df.iterrows():
+
+        # Convert the parsed JD file into JSON
+        extracted_data = extract_job_data(row['job_description'], client)
+        json_jd = json.dumps(extracted_data)
+
+        cursor.execute('''
+            INSERT INTO job_description (job_company, job_title, job_description, job_application_url, parsed_file)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (row['job_company'], row['job_title'], row['job_description'], row['job_application_url'], json_jd))
 
     connection.commit()
     connection.close()
