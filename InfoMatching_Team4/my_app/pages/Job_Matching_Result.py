@@ -17,7 +17,7 @@ def main():
     cursor = connection.cursor()
 
     if student_name:
-        cursor.execute("SELECT * FROM job_matching_result WHERE student_name = ?", (student_name,))
+        cursor.execute("SELECT * FROM job_matching_result WHERE student_name LIKE ?", ('%' + student_name + '%',))
     else:
         cursor.execute("SELECT * FROM job_matching_result")
     
