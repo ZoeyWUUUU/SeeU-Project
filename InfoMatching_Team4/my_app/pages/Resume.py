@@ -64,6 +64,14 @@ def main():
     else:
         cursor.execute("SELECT * FROM uploads")
 
+    # cursor.execute("SELECT * FROM uploads")
+
+    # Build the query based on search criteria
+    if student_name:
+        cursor.execute("SELECT * FROM uploads WHERE student_name LIKE ?", ('%' + student_name + '%',))
+    else:
+        cursor.execute("SELECT * FROM uploads")
+
     data = cursor.fetchall()
 
     # Fetch column names
