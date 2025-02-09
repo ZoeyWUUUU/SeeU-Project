@@ -8,12 +8,20 @@ cursor = connection.cursor()
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS uploads (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        student_name TEXT NOT NULL UNIQUE,
         file_name TEXT NOT NULL,
         file_path TEXT NOT NULL,
         uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
 ''')
+# cursor.execute('''
+#     CREATE TABLE IF NOT EXISTS uploads (
+#         id INTEGER PRIMARY KEY AUTOINCREMENT,
+#         student_name TEXT NOT NULL UNIQUE,
+#         file_name TEXT NOT NULL,
+#         file_path TEXT NOT NULL,
+#         uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+#     )
+# ''')
 
 #SIMULATION - existing data
 student_name = "John Doe"
@@ -30,7 +38,8 @@ file_path = "uploads/example.txt" # change to your testing file path
 #         file_path = excluded.file_path,
 #         uploaded_at = CURRENT_TIMESTAMP
 # ''', (file_name, file_path))
-cursor.execute("INSERT INTO uploads (student_name, file_name, file_path) VALUES (?, ?, ?)", (student_name, file_name, file_path))
+# cursor.execute("INSERT INTO uploads (student_name, file_name, file_path) VALUES (?, ?, ?)", (student_name, file_name, file_path))
+cursor.execute("INSERT INTO uploads (file_name, file_path) VALUES (?, ?)", (file_name, file_path))
 
 
 # table 2: job description
@@ -40,10 +49,25 @@ cursor.execute('''
         job_company TEXT NOT NULL,                    
         job_title TEXT NOT NULL,
         job_description TEXT NOT NULL,
-        job_application_url TEXT NOT NULL, 
+        job_application_url TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
 ''')
+# cursor.execute('''
+#     CREATE TABLE IF NOT EXISTS job_description (
+#         id INTEGER PRIMARY KEY AUTOINCREMENT,
+#         job_company TEXT NOT NULL,                    
+#         job_title TEXT NOT NULL,
+#         job_description TEXT NOT NULL,
+#         job_application_url TEXT NOT NULL,
+#         company_industry_field TEXT,
+#         major TEXT,
+#         tech_skills TEXT,
+#         graduation_time TEXT,
+#         qualification TEXT, 
+#         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+#     )
+# ''')
 #SIMULATION - existing data 
 job_company = "Google" 
 job_title = "Software Engineer" 
