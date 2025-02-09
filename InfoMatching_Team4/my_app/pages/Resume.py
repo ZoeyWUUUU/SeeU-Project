@@ -219,7 +219,7 @@ def main():
             # Convert the filtered data to a DataFrame
             filtered_df = pd.DataFrame(filtered_data, columns=column_names)
             filtered_df['file_name'] = filtered_df.apply(lambda row: f'<a href="{server_url}/{row["file_name"]}" target="_blank">{row["file_name"]}</a>', axis=1)
-            filtered_df['select'] = filtered_df.apply(lambda row: st.checkbox("", key=row['file_name']), axis=1)
+            # filtered_df['select'] = filtered_df.apply(lambda row: st.checkbox("", key=row['file_name']), axis=1)
 
             if filtered_df.empty:
                 st.write("No result")
