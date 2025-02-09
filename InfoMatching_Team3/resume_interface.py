@@ -13,16 +13,33 @@ try:
     client = OpenAI(
         api_key=key, 
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+    ) # "https://api.deepseek.com"
+    model_name = "qwen-plus" # "deepseek-chat"
+    test_response = client.chat.completions.create(
+        model=model_name,
+        messages=[
+            {"role": "user", "content": "Hi"},
+        ],
     )
-    model_name = "qwen-plus"
+    print('Using QWEN from Ali.')
 except:
-    key_file_path = os.path.join(os.path.dirname(__file__), 'key.txt')
-    with open(key_file_path, 'r') as file:
-        key = file.read()
-    client = OpenAI(
-        api_key=key,
-    )
-    model_name = "gpt-4o-mini"
+    try:
+        key_file_path = os.path.join(os.path.dirname(__file__), 'key.txt')
+        with open(key_file_path, 'r') as file:
+            key = file.read()
+        client = OpenAI(
+            api_key=key,
+        )
+        model_name = "gpt-4o-mini"
+        test_response = client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {"role": "user", "content": "Hi"},
+            ],
+        )
+        print('Using GPT from OpenAI.')
+    except:
+        print('No valid API key found. Please provide a valid API key in a text file named "key.txt" or "ali_key.txt" in the same directory as the script.')
 
 class ExperienceType(Enum):
     DETAIL = 1
@@ -74,7 +91,8 @@ class BriefResume(BaseModel):
     business_domain: list[str]
     experiences: list[str]
 
-def read_resume(file_path=None, file_object=None, detailed_level=ExperienceType.SUMMARY):
+def read_resume(file_path=None, file_object=None, detailed_level=ExperienceType.SENTENCE):
+    print(model_name)
     error_message = ''
 
     # Handle file path input
@@ -105,7 +123,7 @@ def read_resume(file_path=None, file_object=None, detailed_level=ExperienceType.
     error_message += "No file path or file object provided."
     raise Exception(error_message)
 
-def extract_student_info(file, detailed_level=ExperienceType.SUMMARY):
+def extract_student_info(file, detailed_level=ExperienceType.SENTENCE):
     text = extract_text_from_pdf(file)
     llm_response = llm_parse(text, detailed_level)
     return json.loads(llm_response)
@@ -133,7 +151,8 @@ def llm_parse(text, detailed_experience=False):
         messages=[
             {'role': 'system', 'content': """You are a recruiter looking to extract information from a student resume. 
 Extract the name, school(s), gpa(s) (e.g. 3.85/4.00), major(s) (without degree, e.g. Master of Science in Information should be Information Science), graduation_time (YYYY-MM), tech_skills (e.g., Python, SQL), business_domain(s) (or industry of company despite schools, at least two, e.g., finance, supply chain) and """ + experiment_prompt + """ 
-Always output plain JSON without any markdown or formatting, only the raw JSON object. Please respond in English."""},
+Always output plain JSON without any markdown or formatting, only the raw JSON object. Please respond in English.
+JSON SCHEMA: {"name": str, "school": list[str], "gpa": list[str], major: list[str], graduation_time: str, tech_skills: list[str], business_domain: list[str], experiences: list[str]}"""},
             {"role": "user", "content": """Resume
     """ + text},
         ],
@@ -145,7 +164,7 @@ Always output plain JSON without any markdown or formatting, only the raw JSON o
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Resume Reader')
     parser.add_argument('--file_path', type=str, help='Path to the resume PDF file')
-    parser.add_argument('--detailed_level', type=str, default='SUMMARY', 
+    parser.add_argument('--detailed_level', type=str, default='SENTENCE', 
                         help='Level of detail to extract from the resume',
                         choices=['DETAIL', 'SUMMARY', 'SENTENCE'], required=False)
     parser.add_argument('--output', type=str, help='Output file path', required=False)

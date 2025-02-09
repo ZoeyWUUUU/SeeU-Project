@@ -27,7 +27,7 @@ def extract_job_data(jd):
         result.append({"error": f"Failed to process JD: {e}"})
     return result
 
-file_path = './CS.xlsx'
-df = pd.read_excel(file_path)
-jd1 = df['岗位要求'][20]
-result = extract_job_data(jd1)
+# file_path = './CS.xlsx'
+# df = pd.read_excel(file_path)
+# jd1 = df['岗位要求'][20]
+# result = extract_job_data(jd1)
