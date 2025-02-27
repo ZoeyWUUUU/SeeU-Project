@@ -6,7 +6,7 @@ import os
 import pandas as pd
 
 def main():
-    st.title("Job Matching Result Page")
+    st.markdown("<h1 style='font-size:24px;'>Job Matching Result</h1>", unsafe_allow_html=True)
 
     # Add a text input for the student name
     student_name = st.text_input("Enter Student Name to Filter Results")
@@ -31,7 +31,6 @@ def main():
     connection.close()
 
     if data:
-        st.subheader("Job Matching Result Table Data")
         df = pd.DataFrame(data, columns=column_names)
         st.table(df)
     else:

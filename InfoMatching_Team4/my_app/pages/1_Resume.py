@@ -13,7 +13,7 @@ def sanitize_column_name(name):
     return re.sub(r'\W|^(?=\d)', '_', name).lower()
 
 def main():
-    st.title("Resume Page")
+    st.markdown("<h1 style='font-size:24px;'>Resume</h1>", unsafe_allow_html=True)
 
     with st.sidebar:
         st.header("Upload Resumes")
