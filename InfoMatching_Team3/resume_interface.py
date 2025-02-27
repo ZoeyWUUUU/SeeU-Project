@@ -7,24 +7,24 @@ from openai import OpenAI
 from pydantic import BaseModel
 
 try:
-    key_file_path = os.path.join(os.path.dirname(__file__), 'ali_key.txt')
+    key_file_path = os.path.join(os.path.dirname(__file__), 'ds_key.txt')
     with open(key_file_path, 'r') as file:
         key = file.read()
     client = OpenAI(
         api_key=key, 
-        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
-    ) # "https://api.deepseek.com"
-    model_name = "qwen-plus" # "deepseek-chat"
+        base_url="https://api.deepseek.com",
+    )
+    model_name = "deepseek-chat"
     test_response = client.chat.completions.create(
         model=model_name,
         messages=[
             {"role": "user", "content": "Hi"},
         ],
     )
-    print('Using QWEN from Ali.')
-except:
+    print('Using DeekSeek.')
+except Exception as e:
     try:
-        key_file_path = os.path.join(os.path.dirname(__file__), 'key.txt')
+        key_file_path = os.path.join(os.path.dirname(__file__), 'gpt_key.txt')
         with open(key_file_path, 'r') as file:
             key = file.read()
         client = OpenAI(
@@ -37,9 +37,12 @@ except:
                 {"role": "user", "content": "Hi"},
             ],
         )
-        print('Using GPT from OpenAI.')
-    except:
-        print('No valid API key found. Please provide a valid API key in a text file named "key.txt" or "ali_key.txt" in the same directory as the script.')
+        print('Using GPT-4o-mini.')
+        print("Not using DeepSeek because: ", e)
+    except Exception as e2:
+        print('No valid API key found. Please provide a valid API key in a text file named "gpt_key.txt" or "ds_key.txt" in the same directory as the script.')
+        print("Not using DeepSeek because: ", e)
+        print("Not using GPT-4o-mini because: ", e2)
 
 class ExperienceType(Enum):
     DETAIL = 1
@@ -83,16 +86,20 @@ class SummaryResume(BaseModel):
 
 class BriefResume(BaseModel):
     name: str
+    phone: str
+    email: str
+    address: str
+    links: list[str]
     school: list[str]
     gpa: list[str]
     major: list[str]
+    degree: list[str]
     graduation_time: str
     tech_skills: list[str]
     business_domain: list[str]
     experiences: list[str]
 
 def read_resume(file_path=None, file_object=None, detailed_level=ExperienceType.SENTENCE):
-    print(model_name)
     error_message = ''
 
     # Handle file path input
@@ -137,26 +144,31 @@ def extract_text_from_pdf(file):
     return text
 
 def llm_parse(text, detailed_experience=False):
-    if detailed_experience == ExperienceType.DETAIL:
-        experiment_prompt = "detailed experiences (include work, intern, project, and others) with job title, organization, start and end date (YYYY-MM or present), and description from the student resume."
-        resume_schema = DetailResume.model_json_schema()
-    elif detailed_experience == ExperienceType.SUMMARY:
-        experiment_prompt = "summarized experiences (include work, intern, project, and others) with job title, organization, business_task (for about 20 words), result, skill_stack, and duration in month (e.g. 3 months) from the student resume."
-        resume_schema = SummaryResume.model_json_schema()
-    else:
+    if model_name == "deepseek-chat":
         experiment_prompt = "summarized experiences, each in one or two sentences."
-        resume_schema = BriefResume.model_json_schema()
+        format = {'type': 'json_object'}
+    else:
+        if detailed_experience == ExperienceType.DETAIL:
+            experiment_prompt = "detailed experiences (include work, intern, project, and others) with job title, organization, start and end date (YYYY-MM or present), and description from the student resume."
+            resume_schema = DetailResume.model_json_schema()
+        elif detailed_experience == ExperienceType.SUMMARY:
+            experiment_prompt = "summarized experiences (include work, intern, project, and others) with job title, organization, business_task (for about 20 words), result, skill_stack, and duration in month (e.g. 3 months) from the student resume."
+            resume_schema = SummaryResume.model_json_schema()
+        else:
+            experiment_prompt = "summarized experiences, each in one or two sentences."
+            resume_schema = BriefResume.model_json_schema()
+        format = {'type': 'json_schema', 'json_schema': {'name': 'resume', 'schema': resume_schema}}
     response = client.chat.completions.create(
         model=model_name,
         messages=[
             {'role': 'system', 'content': """You are a recruiter looking to extract information from a student resume. 
-Extract the name, school(s), gpa(s) (e.g. 3.85/4.00), major(s) (without degree, e.g. Master of Science in Information should be Information Science), graduation_time (YYYY-MM), tech_skills (e.g., Python, SQL), business_domain(s) (or industry of company despite schools, at least two, e.g., finance, supply chain) and """ + experiment_prompt + """ 
+Extract the name (should have white space between first name and last name), phone, email, address, links, school(s), gpa(s) (e.g. 3.85/4.00), major(s) (without degree, e.g. Master of Science in Information should be Information Science), degree(s) (e.g. Master of Science in Information), graduation_time (YYYY-MM), tech_skills (e.g., Python, SQL), business_domain(s) (or industry of company despite schools, at least two, e.g., finance, supply chain) and """ + experiment_prompt + """ 
 Always output plain JSON without any markdown or formatting, only the raw JSON object. Please respond in English.
-JSON SCHEMA: {"name": str, "school": list[str], "gpa": list[str], major: list[str], graduation_time: str, tech_skills: list[str], business_domain: list[str], experiences: list[str]}"""},
+JSON SCHEMA: {"name": str, "phone": str, "email": str, "address": str, "links": list[str], "school": list[str], "gpa": list[str], "major": list[str], "degree": list[str], "graduation_time": str, "tech_skills": list[str], "business_domain": list[str], "experiences": list[str]}"""},
             {"role": "user", "content": """Resume
     """ + text},
         ],
-        response_format={'type': 'json_schema', 'json_schema': {'name': 'resume', 'schema': resume_schema}},
+        response_format=format,
         temperature=0.00,
     )
     return response.choices[0].message.content
